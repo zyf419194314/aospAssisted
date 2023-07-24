@@ -20,9 +20,10 @@ function show_title() {
 }
 
 function getparams() {
+  echo "当前路径: $(pwd)"
   read -p "请输入aosp目录存放地址[支持 相对路径/绝对路径] (默认为: $(get_config DIR)):" DIR
   DIR="${DIR:-$(get_config DIR)}"
-  DIR=$(echo "$DIR" | sed 's|/||g')
+  DIR="${DIR%/}"
   set_config DIR "$DIR"
   MANIFEST=$DIR/.repo/manifests/
 
