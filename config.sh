@@ -19,7 +19,8 @@ set_config() {
   # 判断key是否存在
   if grep "^$key=" $CONFIG_FILE >/dev/null; then
     # 如果存在，使用sed替换原有的值
-    sed -i "s/^$key=.*/$key=$value/" $CONFIG_FILE
+    escaped_value=$(echo "$value" | sed 's/[\/&]/\\&/g')
+    sed -i "s/^$key=.*/$key=$escaped_value/" $CONFIG_FILE
   else
     # 如果不存在，直接在末尾添加配置项
     echo "$key=$value" >>$CONFIG_FILE
