@@ -116,22 +116,37 @@ function getNameAndPath()
 function creatEmptyGerritProject()
 {
     # 建立父仓库 AOSP，方便gerrita权限管理
-    echo "ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit create-project --permissions-only AOSP"
-    if ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit create-project --permissions-only AOSP; then
-        echo ">>>step 1 aosp源码父仓库 AOSP 创建成功"
+    output=$(ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit create-project --permissions-only AOSP 2>&1)
+    ret=$?
+
+    if [ $ret -eq 0 ]; then
+      # 命令执行成功
+      echo ">>>step 1 aosp源码父仓库 AOSP 创建成功"
+    elif [[ "$output" == *"fatal: Project already exists"* ]]; then
+      # 错误信息为 "fatal: Project already exists"，跳过
+      echo "警告: Project already exists"
+      echo ">>>step 1 aosp源码父仓库 AOSP 创建成功"
     else
-        echo ">>>step 1 aosp源码父仓库 AOSP 创建失败"
-        exit 1
+      # 其他错误信息，退出
+      echo ">>>step 1 aosp源码父仓库 AOSP 创建失败"
+      exit 1
     fi
-    
 
     # 建立单独的 manifests 仓库,风格与AOSP保持一致
     echo "ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit create-project platform/manifests"
-    if ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit create-project platform/manifests; then
-        echo ">>>step 2 aosp源码 manifests 仓库创建成功"
+    output=$(ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit create-project platform/manifests 2>&1)
+    ret=$?
+    if [ $ret -eq 0 ]; then
+      # 命令执行成功
+      echo ">>>step 2 aosp源码 manifests 仓库创建成功"
+    elif [[ "$output" == *"fatal: Project already exists"* ]]; then
+      # 错误信息为 "fatal: Project already exists"，跳过
+      echo "警告: Project already exists"
+      echo ">>>step 2 aosp源码 manifests 仓库创建成功"
     else
-        echo ">>>step 2 aosp源码 manifests 仓库创建失败"
-        exit 1
+      # 其他错误信息，退出
+      echo ">>>step 2 aosp源码 manifests 仓库创建失败"
+      exit 1
     fi
 
     echo "ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit set-project-parent --parent AOSP platform/manifests"
