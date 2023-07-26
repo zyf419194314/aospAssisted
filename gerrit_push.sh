@@ -26,7 +26,6 @@ function getparams() {
     set_config DIR "$DIR"
     
     MANIFEST=$DIR/.repo/manifests
-    MANIFEST_XML_FILE=$MANIFEST/default.xml
 
     read -p "请输入gerrit服务器地址[支持域名&IP] (默认为: $(get_config GERRIT_SERVER_IP)):" GERRIT_SERVER_IP
     GERRIT_SERVER_IP="${GERRIT_SERVER_IP:-$(get_config GERRIT_SERVER_IP)}"
@@ -46,6 +45,11 @@ function getparams() {
         fi
     done
     set_config GERRIT_SERVER_PORT "$GERRIT_SERVER_PORT"
+
+    read -p "请输入指定的xml文件(默认为: $(get_config GERRIT_MANIFEST_XML_FILE)):" GERRIT_MANIFEST_XML_FILE
+    GERRIT_MANIFEST_XML_FILE="${GERRIT_MANIFEST_XML_FILE:-$(get_config GERRIT_MANIFEST_XML_FILE)}"
+    MANIFEST_XML_FILE=$MANIFEST/$GERRIT_MANIFEST_XML_FILE
+    set_config GERRIT_MANIFEST_XML_FILE "$GERRIT_MANIFEST_XML_FILE"
 }
 
 function check_env() {
@@ -129,31 +133,30 @@ function push_source_to_gerrit() {
                     cd $src_path
                     pwd
                     
-                    git push ssh://$GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name +refs/heads/*
-                    git push ssh://$GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name +refs/heads/* +refs/tags/*
+                    # git push ssh://$GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name +refs/heads/*
+                    # git push ssh://$GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name +refs/heads/* +refs/tags/*
+                    
+                    git push ssh://$GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name +refs/heads/* 2>&1 | while IFS= read -r line; do
+                      echo "$line"
 
-                    # 这里先不做错误catch，待更好的方案给出
-                    # git push ssh://$GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name 2>&1 | while IFS= read -r line; do
-                    #   echo "$line"
-
-                    #   # 判断输出中是否包含"error"关键字
-                    #   if [[ $line == *"Unpack error"* ]]; then
-                    #     echo "发现Unpack error错误,尝试重建git仓库"
-                    #     find . -name ".git" | xargs rm -rf
-                    #     git init --initial-branch $DEFAULT_BRANCH
-                    #     git remote add origin ssh://$GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name.git
-                    #     git add -f .
-                    #     git commit -am "init commit"
-                    #     git push --set-upstream ssh://$GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name $DEFAULT_BRANCH
-                    #   elif [[ $line == *"unexpected disconnect"* ]]; then
-                    #     echo "发现unexpected disconnect错误,该错误有可能是ssh的TCP连接错误,请尝试将下方字段写入 /etc/ssh/ssh_config , 并重新运行本脚本"
-                    #     # echo 'sudo sh -c '\''echo "TCPKeepAlive yes" >> /etc/ssh/ssh_config'\'
-                    #     # echo 'sudo sh -c '\''echo "ServerAliveInterval 60" >> /etc/ssh/ssh_config'\'
-                    #     # echo 'sudo sh -c '\''echo "ServerAliveCountMax 60" >> /etc/ssh/ssh_config'\'
-                    #     # echo '您可以访问  https://gerrit-review.googlesource.com/Documentation/config-ssh.html 了解更多信息, 或者尝试使用VPN'
-                    #     exit 1
-                    #   fi
-                    # done
+                      # 判断输出中是否包含"error"关键字
+                      if [[ $line == *"Unpack error"* ]]; then
+                        echo "发现Unpack error错误,尝试重建git仓库"
+                        find . -name ".git" | xargs rm -rf
+                        git init --initial-branch $DEFAULT_BRANCH
+                        git remote add origin ssh://$GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name.git
+                        git add -f .
+                        git commit -am "init commit"
+                        git push --set-upstream ssh://$GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name $DEFAULT_BRANCH
+                      elif [[ $line == *"unexpected disconnect"* ]]; then
+                        echo "发现unexpected disconnect错误,该错误有可能是ssh的TCP连接错误,请尝试将下方字段写入 /etc/ssh/ssh_config , 并重新运行本脚本"
+                        # echo 'sudo sh -c '\''echo "TCPKeepAlive yes" >> /etc/ssh/ssh_config'\'
+                        # echo 'sudo sh -c '\''echo "ServerAliveInterval 60" >> /etc/ssh/ssh_config'\'
+                        # echo 'sudo sh -c '\''echo "ServerAliveCountMax 60" >> /etc/ssh/ssh_config'\'
+                        # echo '您可以访问  https://gerrit-review.googlesource.com/Documentation/config-ssh.html 了解更多信息, 或者尝试使用VPN'
+                        exit 1
+                      fi
+                    done
 
                     cd -
                 fi

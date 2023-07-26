@@ -26,7 +26,6 @@ function getparams() {
     set_config DIR "$DIR"
     
     MANIFEST=$DIR/.repo/manifests
-    MANIFEST_XML_FILE=$MANIFEST/default.xml
     OUTPUT_PROJECT_LIST_FILE_NAME=$DIR/project_list_name
     OUTPUT_PROJECT_LIST_FILE_PATH=$DIR/project_list_path
 
@@ -48,6 +47,11 @@ function getparams() {
         fi
     done
     set_config GERRIT_SERVER_PORT "$GERRIT_SERVER_PORT"
+
+    read -p "请输入指定的xml文件(默认为: $(get_config GERRIT_MANIFEST_XML_FILE)):" GERRIT_MANIFEST_XML_FILE
+    GERRIT_MANIFEST_XML_FILE="${GERRIT_MANIFEST_XML_FILE:-$(get_config GERRIT_MANIFEST_XML_FILE)}"
+    MANIFEST_XML_FILE=$MANIFEST/$GERRIT_MANIFEST_XML_FILE
+    set_config GERRIT_MANIFEST_XML_FILE "$GERRIT_MANIFEST_XML_FILE"
 }
 
 function check_env() {
