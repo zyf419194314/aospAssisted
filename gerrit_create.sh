@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source config.sh
+source tools.sh
 
 function pre_show_title() {
     clear
@@ -119,52 +120,81 @@ function getNameAndPath()
  
 function creatEmptyGerritProject()
 {
-    # 建立父仓库 AOSP，方便gerrita权限管理
+    # >>> 建立父仓库 AOSP，方便gerrita权限管理
+    progress_bar 1 0 'debug' 'step 1' 'aosp源码父仓库 AOSP 创建中...'
     output=$(ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit create-project --permissions-only AOSP 2>&1)
     ret=$?
 
     if [ $ret -eq 0 ]; then
       # 命令执行成功
-      echo ">>>step 1 aosp源码父仓库 AOSP 创建成功"
+      progress_bar 1 1 'success' 'step 1' 'aosp源码父仓库 AOSP 创建成功'
     elif [[ "$output" == *"fatal: Project already exists"* ]]; then
       # 错误信息为 "fatal: Project already exists"，跳过
-      echo "警告: Project already exists"
-      echo ">>>step 1 aosp源码父仓库 AOSP 创建成功"
+      progress_bar 1 0 'warn' 'step 1' 'Project already exists'
+      progress_bar 1 1 'success' 'step 1' 'aosp源码父仓库 AOSP 创建成功'
     else
       # 其他错误信息，退出
-      echo ">>>step 1 aosp源码父仓库 AOSP 创建失败"
+      progress_bar 1 0 'step 1' 'aosp源码父仓库 AOSP 创建失败'
       exit 1
     fi
+    # <<< 建立父仓库 AOSP，方便gerrita权限管理
 
-    # 建立单独的 manifests 仓库,风格与AOSP保持一致
-    echo "ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit create-project platform/manifests"
+    # >>> 建立单独的 manifests 仓库,风格与AOSP保持一致
+    progress_bar 2 0 'debug' 'step 2' 'aosp源码 manifests 仓库创建中...'
+    progress_bar 2 0 'debug' 'step 2' "ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit create-project platform/manifests"
     output=$(ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit create-project platform/manifests 2>&1)
     ret=$?
     if [ $ret -eq 0 ]; then
       # 命令执行成功
-      echo ">>>step 2 aosp源码 manifests 仓库创建成功"
+      progress_bar 2 1 'debug' 'step 2' 'aosp源码 manifests 仓库创建成功'
     elif [[ "$output" == *"fatal: Project already exists"* ]]; then
       # 错误信息为 "fatal: Project already exists"，跳过
-      echo "警告: Project already exists"
-      echo ">>>step 2 aosp源码 manifests 仓库创建成功"
+      progress_bar 2 0 'warn' 'step 2' 'Project already exists'
+      progress_bar 2 1 'debug' 'step 2' 'aosp源码 manifests 仓库创建成功'
     else
       # 其他错误信息，退出
-      echo ">>>step 2 aosp源码 manifests 仓库创建失败"
+      progress_bar 2 0 'step 2' 'aosp源码 manifests 仓库创建失败'
       exit 1
     fi
 
-    echo "ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit set-project-parent --parent AOSP platform/manifests"
-    ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit set-project-parent --parent AOSP platform/manifests
+    progress_bar 2 1 'debug' 'step 2' "ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit set-project-parent --parent AOSP platform/manifests"
+    output=$(ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit set-project-parent --parent AOSP platform/manifests 2>&1)
+    ret=$?
+    if [ $ret -eq 0 ]; then
+      progress_bar 2 2 'success' 'step 2' '成功设置 platform/manifests 仓库的父仓库为 AOSP'
+    else
+      progress_bar 2 1 'success' 'step 2' '设置 platform/manifests 仓库的父仓库为 AOSP 失败'
+      exit 1
+    fi
+    # <<< 建立单独的 manifests 仓库,风格与AOSP保持一致
 
+    # >>> 根据配置文件创建仓库
+    total=$(wc -l < $OUTPUT_PROJECT_LIST_FILE_NAME)
+    current=0
+    progress_bar $total $current 'debug' 'step 3' 'aosp源码仓库h创建中...'
     for i in `cat $OUTPUT_PROJECT_LIST_FILE_NAME`;
     do
-        echo $i
-        echo "ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit create-project $i"
-        ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit create-project $i
-        echo "ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit set-project-parent --parent AOSP $i"
+        current=$(($current+1))
+        progress_bar $total $current 'debug' 'step 3' $i
+        progress_bar $total $current 'debug' 'step 3' "ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit create-project $i"
+        output=$(ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit create-project $i 2>&1)
+        ret=$?
+        if [ $ret -eq 0 ]; then
+          progress_bar $total $current 'debug' 'step 3' "ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit set-project-parent --parent AOSP $i"
+        elif [[ "$output" == *"fatal: Project already exists"* ]]; then
+          # 错误信息为 "fatal: Project already exists"，跳过
+          progress_bar $total $current 'debug' 'step 3' "ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit set-project-parent --parent AOSP $i"
+        else
+          progress_bar $total $current 'err' 'step 3' "ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit set-project-parent --parent AOSP $i"
+          echo $output
+          exit 1
+        fi
+
+        progress_bar $total $current 'debug' 'step 3' "ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit set-project-parent --parent AOSP $i"
         ssh -p $GERRIT_SERVER_PORT $GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP gerrit set-project-parent --parent AOSP $i
     done
-    echo ">>>step 3 aosp源码仓库创建成功"
+    progress_bar $total $current 'success' 'step 3' 'aosp源码仓库创建成功'
+    # <<< 根据配置文件创建仓库
 }
  
 function removeFiles()
