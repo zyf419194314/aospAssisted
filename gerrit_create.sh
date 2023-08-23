@@ -171,7 +171,7 @@ function creatEmptyGerritProject()
     # >>> 根据配置文件创建仓库
     total=$(wc -l < $OUTPUT_PROJECT_LIST_FILE_NAME)
     current=0
-    progress_bar $total $current 'debug' 'step 3' 'aosp源码仓库h创建中...'
+    progress_bar $total $current 'debug' 'step 3' 'aosp源码仓库创建中...'
     for i in `cat $OUTPUT_PROJECT_LIST_FILE_NAME`;
     do
         current=$(($current+1))

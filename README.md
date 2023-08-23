@@ -17,10 +17,12 @@
 | --- | --- |
 | DIR | AOSP源码存放路径 |
 | GERRIT_SERVER_IP | gerrit服务器地址 |
-| GERRIT_SERVER_PORT | gerrit服务器ssh端口 |
+| GERRIT_SERVER_PORT | gerrit服务器端口 |
 | GERRIT_SERVER_USERNAME | gerrit用户名 |
 | GERRIT_MANIFEST_XML_FILE | repo manifest xml 文件 | 
 | REPO_BRANCH | AOSP源码repo分支 |
+| GERRIT_SERVER_PROTOCOL | gerrit使用的协议 |
+| LUNCH_TARGET | AOSP lunch 类型 |
 
 ## 文件结构
 ```

@@ -37,8 +37,25 @@ progress_bar() {
     esac
 
     if [[ ${progress} -eq ${total} ]]; then
-        printf "\r%${COLUMNS}s\r%s |%s%s| %s%% %s\n" "" "${prefix}" "${bar}" "${empty}" "${percent}" "${suffix}"
+        printf "\r%${COLUMNS}s\r%s |%s%s| %s%% %s\\n" "" "${prefix}" "${bar}" "${empty}" "${percent}" "${suffix}"
     else
         printf "\r%${COLUMNS}s\r%s |%s%s| %s%% %s" "" "${prefix}" "${bar}" "${empty}" "${percent}" "${suffix}"
     fi
+}
+
+# url编码
+url_encode() {
+    local string="$1"
+    local encoded_string=""
+
+    # 判断字符串是否为URL编码
+    if [ "$(printf "%s" "$string" | grep -E '[^%a-zA-Z0-9_-]')" ]; then
+        # 字符串不是URL编码，进行URL编码处理
+        encoded_string=$(printf "%s" "$string" | jq -sRr @uri)
+    else
+        # 字符串已经是URL编码，直接返回原字符串
+        encoded_string="$string"
+    fi
+
+    echo "$encoded_string"
 }
