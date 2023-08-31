@@ -109,7 +109,7 @@ function pre_push() {
   echo $MANIFEST_XML_FILE
 
   while read LINE; do
-    branch=$(echo $LINE | grep "<superproject")
+    branch=$(echo $LINE | grep "<default")
     if [ "$branch" ]; then
       branch_sec=${LINE#*revision=\"}
       DEFAULT_BRANCH=${branch_sec%%\"*}
@@ -157,7 +157,7 @@ function push_source_to_gerrit() {
 
           # git push $GERRIT_SERVER_PROTOCOL://$GERRIT_SERVER_USERNAME:$GERRIT_SERVER_HTTP_PWD@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name +refs/heads/*
 
-          # git push ssh://$GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name +refs/heads/* +refs/tags/*
+          # git push ssh://$GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name +refs/heads/*
 
           current=$((current + 1))
           progress_bar $total $current 'debug' 'step 2' "git push $GERRIT_SERVER_PROTOCOL://$GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name +refs/heads/*"
@@ -173,15 +173,18 @@ function push_source_to_gerrit() {
             if [[ $output == *"error Missing commit"* ]]; then
               progress_bar $total $current 'warn' 'step 2' '发现error Missing commit错误,请尝试修改 gerrit.config 文件中的 receive.maxBatchCommits 字段为更大值, 并重启gerrit, 当前尝试重建git仓库 \n'
               find . -name ".git" | xargs rm -rf
-              git init --initial-branch $DEFAULT_BRANCH
+              # git init -b $DEFAULT_BRANCH
+              git init
+
+              git checkout -b $DEFAULT_BRANCH
               git remote add origin $GERRIT_SERVER_PROTOCOL://$GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name
               git add -f .
               git commit -am "init commit"
 
               if [ "$GERRIT_SERVER_PROTOCOL" = "http" ]; then
-                git push $GERRIT_SERVER_PROTOCOL://$GERRIT_SERVER_USERNAME:$GERRIT_SERVER_HTTP_PWD@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name +refs/heads/* 2>&1
+                git push -f $GERRIT_SERVER_PROTOCOL://$GERRIT_SERVER_USERNAME:$GERRIT_SERVER_HTTP_PWD@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name +refs/heads/* 2>&1
               else
-                git push $GERRIT_SERVER_PROTOCOL://$GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name +refs/heads/* 2>&1
+                git push -f $GERRIT_SERVER_PROTOCOL://$GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name +refs/heads/* 2>&1
               fi
             elif [[ $output == *"unexpected disconnect"* ]]; then
               progress_bar $total $current 'err' 'step 2' '发现unexpected disconnect错误,请尝试修改 gerrit.config 文件中的 sshd.TCPKeepAlive = yes, 并重启gerrit, 或者使用http 协议重新push'

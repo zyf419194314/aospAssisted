@@ -1,7 +1,7 @@
 #!/bin/sh
 
 CONFIG_FILE=config.txt
-VERSION=0.1.0
+VERSION=0.2.0
 
 # 函数：set_config
 # 功能：设置配置文件

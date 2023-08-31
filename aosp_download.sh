@@ -121,7 +121,7 @@ function check_env() {
 }
 
 function download_aosp_source() {
-  aosp_source_path="http://mirrors.ustc.edu.cn/aosp-monthly/aosp-latest.tar"
+  aosp_source_path="https://mirrors.tuna.tsinghua.edu.cn/aosp-monthly/aosp-latest.tar"
   echo ">>>step 0 开始下载aosp源码, aosp源地址: $aosp_source_path"
   if curl -C - -o $DIR/aosp-latest.tar -O $aosp_source_path; then
     echo ">>>step 1 aosp源码下载成功"

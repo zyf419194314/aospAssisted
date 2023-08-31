@@ -16,6 +16,9 @@
 | 参数 | 描述 |
 | --- | --- |
 | DIR | AOSP源码存放路径 |
+| GERRIT_DEPLOY_TYPE | gerrit部署方式 1 测试环境部署 / 2 正式环境部署 |
+| GERRIT_DEPLOY_VERSION | gerrit部署版本 |
+| GERRIT_DEPLOY_PORT | gerrit部署端口 |
 | GERRIT_SERVER_IP | gerrit服务器地址 |
 | GERRIT_SERVER_PORT | gerrit服务器端口 |
 | GERRIT_SERVER_USERNAME | gerrit用户名 |
