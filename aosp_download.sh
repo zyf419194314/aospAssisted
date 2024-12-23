@@ -123,11 +123,11 @@ function check_env() {
 function download_aosp_source() {
   aosp_source_path="https://mirrors.tuna.tsinghua.edu.cn/aosp-monthly/aosp-latest.tar"
   echo ">>>step 0 开始下载aosp源码, aosp源地址: $aosp_source_path"
-  if curl -C - -o $DIR/aosp-latest.tar -O $aosp_source_path; then
-    echo ">>>step 1 aosp源码下载成功"
+  if wget --no-check-certificate -U "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0" -P $DIR/ $aosp_source_path; then
+   echo ">>>step 1 aosp源码下载成功"
   else
-    echo ">>>step 1 aosp源码下载失败"
-    exit 1
+   echo ">>>step 1 aosp源码下载失败"
+   exit 1
   fi
 
   if tar -xvf $DIR/aosp-latest.tar -C $DIR --strip 1; then
