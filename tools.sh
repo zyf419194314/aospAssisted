@@ -43,10 +43,56 @@ progress_bar() {
     fi
 }
 
+# 环境检查
+function check_env() {
+  echo ">>> 检查是否已安装 jq..."
+  if command -v jq >/dev/null 2>&1; then
+    echo "jq 已安装！"
+  else
+    echo "jq 未安装，正在尝试安装..."
+
+    if [[ "$(uname)" == "Darwin" ]]; then
+      # macOS
+      if command -v brew >/dev/null 2>&1; then
+        brew install jq
+      else
+        echo "未找到 Homebrew 包管理器，请手动安装。"
+        exit 1
+      fi
+    elif [[ "$(uname)" =~ ^Linux$ ]]; then
+      # Linux
+      if command -v apt-get >/dev/null 2>&1; then
+        sudo apt-get update
+        sudo apt-get install -y jq
+      elif command -v yum >/dev/null 2>&1; then
+        sudo yum update
+        sudo yum install -y jq
+      elif command -v dnf >/dev/null 2>&1; then
+        sudo dnf install -y jq
+      elif command -v pacman >/dev/null 2>&1; then
+        sudo pacman -Syu jq
+      elif command -v zypper >/dev/null 2>&1; then
+        sudo zypper refresh
+        sudo zypper install -y jq
+      else
+        echo "未找到包管理器，请手动安装。"
+        exit 1
+      fi
+    else
+      echo "不支持的操作系统。"
+      exit 1
+    fi
+
+    echo "jq 已安装！"
+  fi
+}
+
 # url编码
 url_encode() {
     local string="$1"
     local encoded_string=""
+
+    check_env
 
     # 判断字符串是否为URL编码
     if [ "$(printf "%s" "$string" | grep -E '[^%a-zA-Z0-9_-]')" ]; then
