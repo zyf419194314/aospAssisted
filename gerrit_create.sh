@@ -39,7 +39,7 @@ function getparams() {
     set_config GERRIT_SERVER_USERNAME "$GERRIT_SERVER_USERNAME"
 
     while true; do
-        read -p "请输入gerrit ssh端口号(默认为: $(get_config GERRIT_SERVER_PORT)):" GERRIT_SERVER_PORT
+        read -p "请输入gerrit ssh或http端口号(默认为: $(get_config GERRIT_SERVER_PORT)):" GERRIT_SERVER_PORT
         GERRIT_SERVER_PORT="${GERRIT_SERVER_PORT:-$(get_config GERRIT_SERVER_PORT)}"
         if [[ $GERRIT_SERVER_PORT =~ ^[0-9]+$ ]] && [[ $GERRIT_SERVER_PORT -ge 1 ]] && [[ $GERRIT_SERVER_PORT -le 65535 ]]; then
             break
@@ -49,7 +49,7 @@ function getparams() {
     done
     set_config GERRIT_SERVER_PORT "$GERRIT_SERVER_PORT"
 
-    read -p "请输入指定的xml文件(默认为: $(get_config GERRIT_MANIFEST_XML_FILE)):" GERRIT_MANIFEST_XML_FILE
+    read -p "请输入指定的xml文件(例如default.xml,本脚本默认在.repo/manifests/文件夹下查找该文件,默认为: $(get_config GERRIT_MANIFEST_XML_FILE)):" GERRIT_MANIFEST_XML_FILE
     GERRIT_MANIFEST_XML_FILE="${GERRIT_MANIFEST_XML_FILE:-$(get_config GERRIT_MANIFEST_XML_FILE)}"
     MANIFEST_XML_FILE=$MANIFEST/$GERRIT_MANIFEST_XML_FILE
     set_config GERRIT_MANIFEST_XML_FILE "$GERRIT_MANIFEST_XML_FILE"

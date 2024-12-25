@@ -171,21 +171,21 @@ function push_source_to_gerrit() {
 
           if [ $? -ne 0 ]; then
             if [[ $output == *"error Missing commit"* ]]; then
-              progress_bar $total $current 'warn' 'step 2' '发现error Missing commit错误,请尝试修改 gerrit.config 文件中的 receive.maxBatchCommits 字段为更大值, 并重启gerrit, 当前尝试重建git仓库 \n'
-              find . -name ".git" | xargs rm -rf
-              # git init -b $DEFAULT_BRANCH
-              git init
+              progress_bar $total $current 'warn' 'step 2' '发现error Missing commit错误,请尝试修改 gerrit.config 文件中的 receive.maxBatchCommits 字段为更大值, 并重启gerrit, 或者使用http重新push \n'
+              # find . -name ".git" | xargs rm -rf
+              # # git init -b $DEFAULT_BRANCH
+              # git init
 
-              git checkout -b $DEFAULT_BRANCH
-              git remote add origin $GERRIT_SERVER_PROTOCOL://$GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name
-              git add -f .
-              git commit -am "init commit"
+              # git checkout -b $DEFAULT_BRANCH
+              # git remote add origin $GERRIT_SERVER_PROTOCOL://$GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name
+              # git add -f .
+              # git commit -am "init commit"
 
-              if [ "$GERRIT_SERVER_PROTOCOL" = "http" ]; then
-                git push -f $GERRIT_SERVER_PROTOCOL://$GERRIT_SERVER_USERNAME:$GERRIT_SERVER_HTTP_PWD@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name +refs/heads/* 2>&1
-              else
-                git push -f $GERRIT_SERVER_PROTOCOL://$GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name +refs/heads/* 2>&1
-              fi
+              # if [ "$GERRIT_SERVER_PROTOCOL" = "http" ]; then
+              #   git push -f $GERRIT_SERVER_PROTOCOL://$GERRIT_SERVER_USERNAME:$GERRIT_SERVER_HTTP_PWD@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name +refs/heads/* 2>&1
+              # else
+              #   git push -f $GERRIT_SERVER_PROTOCOL://$GERRIT_SERVER_USERNAME@$GERRIT_SERVER_IP:$GERRIT_SERVER_PORT/$reposity_name +refs/heads/* 2>&1
+              # fi
             elif [[ $output == *"unexpected disconnect"* ]]; then
               progress_bar $total $current 'err' 'step 2' '发现unexpected disconnect错误,请尝试修改 gerrit.config 文件中的 sshd.TCPKeepAlive = yes, 并重启gerrit, 或者使用http 协议重新push'
               echo "错误详情如下:"
